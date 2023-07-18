@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import { requestImages } from 'services/Api';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
@@ -8,34 +8,27 @@ import Loader from './Loader/Loader';
 import Notiflix from 'notiflix';
 import { AppCont } from './AppStyled';
 
-export class App extends Component {
-  state = {
-    images: [],
-    currentPage: 1,
-    isLoading: false,
-    error: null,
-    searchImage: '',
-    modal: { isOpen: false, modalData: null },
-    noImagesLeft: false,
-  };
+export default function App() {
+  const [images, setImages] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [searchImage, setSearchImage] = useState('');
+  const [modal, setModal] = useState({ isOpen: false, modalData: null });
+  const [noImagesLeft, setNoImagesLeft] = useState(false);
 
-  async componentDidUpdate(_, prevState) {
-    const { searchImage, currentPage } = this.state;
-    if (
-      this.state.searchImage !== prevState.searchImage ||
-      this.state.currentPage !== prevState.currentPage
-    ) {
+  useEffect(() => {
+    if (!searchImage || !currentPage) return;
+
+    const fetchImages = async () => {
       try {
-        this.setState({ isLoading: true });
+        setIsLoading(true);
         const images = await requestImages(searchImage, currentPage);
-        this.setState({
-          images:
-            currentPage === 1
-              ? images.hits
-              : [...prevState.images, ...images.hits],
-          error: null,
-          noImagesLeft: images.hits.length === 0 && currentPage > 1,
-        });
+        setImages(prevImages =>
+          currentPage === 1 ? images.hits : [...prevImages, ...images.hits]
+        );
+        setError(null);
+        setNoImagesLeft(images.hits.length === 0 && currentPage > 1);
 
         if (images.hits.length === 0 && currentPage === 1) {
           Notiflix.Notify.failure(
@@ -43,48 +36,44 @@ export class App extends Component {
           );
         }
       } catch (error) {
-        this.setState({ error: error.message });
+        setError(error.message);
       } finally {
-        this.setState({ isLoading: false });
+        setIsLoading(false);
       }
-    }
-  }
+    };
 
-  onSubmit = searchImage => {
-    this.setState({
-      searchImage: searchImage,
-      currentPage: 1,
-      noImagesLeft: false,
-    });
+    fetchImages();
+  }, [searchImage, currentPage]);
+
+  const onSubmit = searchImage => {
+    setSearchImage(searchImage);
+    setCurrentPage(1);
+    setNoImagesLeft(false);
   };
 
-  onLoadMore = () => {
-    this.setState(prev => ({ currentPage: prev.currentPage + 1 }));
+  const onLoadMore = () => {
+    setCurrentPage(prevPage => prevPage + 1);
   };
 
-  onOpenModal = data =>
-    this.setState({ modal: { isOpen: true, modalData: data } });
-  onCloseModal = () =>
-    this.setState({ modal: { isOpen: false, modalData: null } });
+  const onOpenModal = data => setModal({ isOpen: true, modalData: data });
+  const onCloseModal = () => setModal({ isOpen: false, modalData: null });
 
-  render() {
-    const { images, isLoading, error, modal, noImagesLeft } = this.state;
+  {
     const showLoadMoreBtn = images.length > 0 && !isLoading && !noImagesLeft;
     return (
       <AppCont>
-        <Searchbar onSubmit={this.onSubmit} />
-
+        <Searchbar onSubmit={onSubmit} />
         {error && <div>Error: {error}</div>}
-        <ImageGallery images={images} onOpenModal={this.onOpenModal} />
+        <ImageGallery images={images} onOpenModal={onOpenModal} />
         {isLoading && (
           <div>
             <Loader />
           </div>
         )}
         {modal.isOpen && (
-          <Modal modalData={modal.modalData} onCloseModal={this.onCloseModal} />
+          <Modal modalData={modal.modalData} onCloseModal={onCloseModal} />
         )}
-        {showLoadMoreBtn && <Button onLoadMore={this.onLoadMore} />}
+        {showLoadMoreBtn && <Button onLoadMore={onLoadMore} />}
         {noImagesLeft &&
           Notiflix.Notify.failure(
             "We're sorry, but you've reached the end of search results."
