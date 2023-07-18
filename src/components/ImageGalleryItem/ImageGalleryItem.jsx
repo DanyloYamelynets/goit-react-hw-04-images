@@ -16,7 +16,6 @@ function ImageGalleryItem({
       <ImageGalleryImage
         src={webformatURL}
         alt={tags}
-        width={300}
         onClick={() => {
           onOpenModal({ id, tags, largeImageURL });
         }}
@@ -26,7 +25,7 @@ function ImageGalleryItem({
 }
 
 ImageGalleryItem.propTypes = {
-  id: PropTypes.number.isRequired,
+  id: PropTypes.number,
   tags: PropTypes.string.isRequired,
   webformatURL: PropTypes.string.isRequired,
   largeImageURL: PropTypes.string.isRequired,
