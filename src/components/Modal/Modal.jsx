@@ -19,7 +19,7 @@ export default function Modal({ onCloseModal, modalData }) {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [handleKeyDown]);
 
   return (
     <Overlay className="overlay" onClick={handleClickOverlay}>
