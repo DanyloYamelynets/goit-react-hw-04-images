@@ -58,27 +58,25 @@ export default function App() {
   const onOpenModal = data => setModal({ isOpen: true, modalData: data });
   const onCloseModal = () => setModal({ isOpen: false, modalData: null });
 
-  {
-    const showLoadMoreBtn = images.length > 0 && !isLoading && !noImagesLeft;
-    return (
-      <AppCont>
-        <Searchbar onSubmit={onSubmit} />
-        {error && <div>Error: {error}</div>}
-        <ImageGallery images={images} onOpenModal={onOpenModal} />
-        {isLoading && (
-          <div>
-            <Loader />
-          </div>
+  const showLoadMoreBtn = images.length >= 12 && !isLoading && !noImagesLeft;
+  return (
+    <AppCont>
+      <Searchbar onSubmit={onSubmit} />
+      {error && <div>Error: {error}</div>}
+      <ImageGallery images={images} onOpenModal={onOpenModal} />
+      {isLoading && (
+        <div>
+          <Loader />
+        </div>
+      )}
+      {modal.isOpen && (
+        <Modal modalData={modal.modalData} onCloseModal={onCloseModal} />
+      )}
+      {showLoadMoreBtn && <Button onLoadMore={onLoadMore} />}
+      {noImagesLeft &&
+        Notiflix.Notify.failure(
+          "We're sorry, but you've reached the end of search results."
         )}
-        {modal.isOpen && (
-          <Modal modalData={modal.modalData} onCloseModal={onCloseModal} />
-        )}
-        {showLoadMoreBtn && <Button onLoadMore={onLoadMore} />}
-        {noImagesLeft &&
-          Notiflix.Notify.failure(
-            "We're sorry, but you've reached the end of search results."
-          )}
-      </AppCont>
-    );
-  }
+    </AppCont>
+  );
 }
